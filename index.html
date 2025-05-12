@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NYC Traffic Collision Analysis</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Plotly for interactive charts -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>NYC Traffic Collision Analysis</h1>
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#map">Collision Map</a></li>
+                <li><a href="#patterns">Patterns</a></li>
+                <li><a href="#factors">Contributing Factors</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="overview">
+            <h2>Understanding NYC Traffic Collisions</h2>
+            <p>Interactive analysis of motor vehicle collisions in New York City...</p>
+        </section>
+
+        <section id="map">
+            <h2>Collision Hotspots</h2>
+            <div id="map-container"></div>
+        </section>
+
+        <section id="patterns">
+            <h2>Temporal Patterns</h2>
+            <div id="time-chart"></div>
+            <div id="weather-chart"></div>
+        </section>
+
+        <section id="factors">
+            <h2>Contributing Factors</h2>
+            <div id="factors-chart"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Data source: NYC Open Data - Motor Vehicle Collisions</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html> 
