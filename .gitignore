@@ -1,0 +1,3 @@
+# Ignore CSV files
+Motor_Vehicle_Collisions_-_Crashes_20250512.csv
+*.csv 
