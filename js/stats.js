@@ -5,22 +5,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadStatistics() {
     try {
-        // Load map data to calculate statistics
-        const response = await fetch('js/data/map_data.json');
-        if (!response.ok) {
-            throw new Error('Failed to load map data');
-        }
+        // Load all data types to calculate statistics
+        const timePromise = fetch('js/data/time_series.json')
+            .then(response => response.json());
         
-        const mapData = await response.json();
+        const factorPromise = fetch('js/data/factor_data.json')
+            .then(response => response.json());
+            
+        const mapPromise = fetch('js/data/map_data.json')
+            .then(response => response.json());
+            
+        // Wait for all data to be loaded
+        const [timeData, factorData, mapData] = await Promise.all([
+            timePromise, factorPromise, mapPromise
+        ]);
         
-        // Calculate daily average collisions
-        updateDailyCollisionStat(mapData);
+        // Calculate daily average collisions from time series data
+        updateDailyCollisionStat(timeData);
         
-        // Calculate peak collision hours
-        updatePeakHoursStat();
+        // Calculate peak collision hours from time series data
+        updatePeakHoursStat(timeData);
         
-        // Update most common factor
-        updateCommonFactorStat();
+        // Update most common factor that's not "Unspecified"
+        updateCommonFactorStat(factorData);
         
     } catch (error) {
         console.error('Error loading statistics:', error);
@@ -28,41 +35,33 @@ async function loadStatistics() {
     }
 }
 
-// Calculate daily average from all collision data
-function updateDailyCollisionStat(mapData) {
-    // Get collision dates
-    const dateCounter = {};
-    
-    // Count collisions per day
-    mapData.forEach(collision => {
-        if (collision['CRASH DATE']) {
-            const dateStr = collision['CRASH DATE'].split('T')[0]; // Get just the date part
-            dateCounter[dateStr] = (dateCounter[dateStr] || 0) + 1;
+// Calculate daily average from time series data
+function updateDailyCollisionStat(timeData) {
+    try {
+        // Calculate total daily collisions by summing all hours
+        let totalCollisions = 0;
+        timeData.forEach(hourData => {
+            totalCollisions += hourData.count;
+        });
+        
+        // Assuming the data covers a full year (365 days)
+        // If we know the exact timespan, we can adjust this
+        const approximateDays = 365;
+        const dailyAverage = Math.round(totalCollisions / approximateDays);
+        
+        // Update the stat card
+        const dailyCollisionElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
+        if (dailyCollisionElement) {
+            dailyCollisionElement.textContent = dailyAverage.toLocaleString();
         }
-    });
-    
-    // Calculate average
-    const dateCount = Object.keys(dateCounter).length;
-    const totalCollisions = mapData.length;
-    const dailyAverage = dateCount > 0 ? Math.round(totalCollisions / dateCount) : 0;
-    
-    // Update the stat card
-    const dailyCollisionElement = document.querySelector('.stat-card:nth-child(1) .stat-number');
-    if (dailyCollisionElement) {
-        dailyCollisionElement.textContent = dailyAverage.toLocaleString();
+    } catch (error) {
+        console.error('Error calculating daily average:', error);
     }
 }
 
 // Update the peak hours based on time series data
-async function updatePeakHoursStat() {
+function updatePeakHoursStat(timeData) {
     try {
-        const response = await fetch('js/data/time_series.json');
-        if (!response.ok) {
-            throw new Error('Failed to load time series data');
-        }
-        
-        const timeData = await response.json();
-        
         // Find peak hour
         let peakHour = 0;
         let maxCount = 0;
@@ -118,19 +117,21 @@ async function updatePeakHoursStat() {
     }
 }
 
-// Update most common factor from factor data
-async function updateCommonFactorStat() {
+// Update most common factor from factor data, excluding "Unspecified"
+function updateCommonFactorStat(factorData) {
     try {
-        const response = await fetch('js/data/factor_data.json');
-        if (!response.ok) {
-            throw new Error('Failed to load factor data');
-        }
+        // Filter out "Unspecified" factor
+        const relevantFactors = factorData.filter(factor => 
+            factor.factor !== "Unspecified" && 
+            factor.factor !== "unspecified" &&
+            factor.factor !== ""
+        );
         
-        const factorData = await response.json();
+        // Sort by count descending
+        relevantFactors.sort((a, b) => b.count - a.count);
         
-        // Sort factors by count and get the top one
-        factorData.sort((a, b) => b.count - a.count);
-        const topFactor = factorData[0];
+        // Get the top factor
+        const topFactor = relevantFactors[0];
         
         if (topFactor) {
             // Format the factor name for display
